@@ -56,5 +56,8 @@ setup(
     author_email="acstis@finnwea.com",
     license="MIT",
     url="https://github.com/cqr-cryeye-forks/angularjs-csti-scanner",
-    install_requires=requirements
+    install_requires=[
+        requirements,
+        'nyawc @ git+https://github.com/cqr-cryeye-forks/not-your-average-web-crawler'
+]
 )
