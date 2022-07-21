@@ -1,6 +1,7 @@
 import ctypes
 import json
 import os
+import pathlib
 import stat
 import sys
 
@@ -12,13 +13,13 @@ from nyawc.http.Request import Request
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
-from constants import FILE_PATH
-
-try: # Python 3
+try:  # Python 3
     from urllib.parse import quote, urlparse
 except:  # Python 2
     from urllib import quote
     from urlparse import urlparse
+
+FILE_PATH = pathlib.Path(__file__).parents[2]
 
 
 class BrowserHelper:
