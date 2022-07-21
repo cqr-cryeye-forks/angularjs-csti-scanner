@@ -3,6 +3,7 @@ import sys
 import traceback
 
 import colorlog
+from nyawc import Options, Queue
 from nyawc.Crawler import Crawler
 from nyawc.CrawlerActions import CrawlerActions
 from nyawc.QueueItem import QueueItem
@@ -20,18 +21,18 @@ class Driver:
 
     Attributes:
         __args (:class:`argparse.Namespace`): A namespace with all the parsed CLI arguments.
-        __options (:class:`nyawc.Options`): The options to use for the current crawling runtime.
+        __options: The options to use for the current crawling runtime.
         __vulnerable_items list(:class:`nyawc.http.Request`): A list of vulnerable items (if any).
         stopping (bool): True on SIGINT, false otherwise.
 
     """
 
-    def __init__(self, args, options):
+    def __init__(self, args, options: Options):
         """Constructs a Driver instance. The driver instance manages the crawling proces.
 
         Args:
             args (:class:`argparse.Namespace`): A namespace with all the parsed CLI arguments.
-            options (:class:`nyawc.Options`): The options to use for the current crawling runtime.
+            options: The options to use for the current crawling runtime.
 
         """
 
@@ -72,11 +73,11 @@ class Driver:
             f"Received SIGINT{signum} on frame {frame}, stopping the crawling threads safely. "
             "This could take up to 30 seconds (the thread timeout).")
 
-    def __set_angular_version(self, startpoint):
+    def __set_angular_version(self, startpoint: Request):
         """Find and set the AngularJS version as class attribute
 
         Args:
-            startpoint (:class:`nyawc.http.Request`): The startpoint request.
+            startpoint: The startpoint request.
 
         Returns:
             str: True if found and set, False otherwise.
@@ -111,6 +112,7 @@ class Driver:
         """Start the crawler."""
 
         startpoint = Request(self.__args.domain)
+        # startpoint = Request(self.__args.domain, verify=False)
         HTTPRequestHelper.patch_with_options(startpoint, self.__options)
 
         if self.__set_angular_version(startpoint):
@@ -154,12 +156,12 @@ class Driver:
         else:
             colorlog.getLogger().warning("Couldn't find any vulnerable requests.")
 
-    def cb_request_before_start(self, queue, queue_item):
+    def cb_request_before_start(self, queue: Queue, queue_item: QueueItem):
         """Crawler callback (called before a request starts).
 
         Args:
-            queue (:class:`nyawc.Queue`): The current crawling queue.
-            queue_item (:class:`nyawc.QueueItem`): The queue item that's about to start.
+            queue: The current crawling queue.
+            queue_item: The queue item that's about to start.
 
         Returns:
             str: A crawler action (either DO_SKIP_TO_NEXT, DO_STOP_CRAWLING or DO_CONTINUE_CRAWLING).
@@ -177,13 +179,13 @@ class Driver:
 
         return CrawlerActions.DO_CONTINUE_CRAWLING
 
-    def cb_request_after_finish(self, queue, queue_item, new_queue_items: list[QueueItem]):
+    def cb_request_after_finish(self, queue: Queue, queue_item: QueueItem, new_queue_items: list[QueueItem]):
         """Crawler callback (called after a request finished).
 
         Args:
-            queue (:class:`nyawc.Queue`): The current crawling queue.
-            queue_item (:class:`nyawc.QueueItem`): The queue item that was finished.
-            new_queue_items list(:class:`nyawc.QueueItem`): The new queue items that were found
+            queue: The current crawling queue.
+            queue_item: The queue item that was finished.
+            new_queue_items: The new queue items that were found
 
         Returns:
             str: A crawler action (either DO_STOP_CRAWLING or DO_CONTINUE_CRAWLING).
@@ -209,22 +211,22 @@ class Driver:
         return CrawlerActions.DO_CONTINUE_CRAWLING
 
     @staticmethod
-    def cb_request_on_error(queue_item, message):
+    def cb_request_on_error(queue_item: QueueItem, message: str):
         """Crawler callback (called when a request error occurs).
 
         Args:
-            queue_item (:class:`nyawc.QueueItem`): The queue item that failed.
+            queue_item: The queue item that failed.
             message (str): The error message.
 
         """
 
         colorlog.getLogger().error(f"{queue_item}: {message}")
 
-    def cb_request_in_thread_after_finish(self, queue_item):
+    def cb_request_in_thread_after_finish(self, queue_item: QueueItem):
         """Crawler callback (called after a request finished).
 
         Args:
-            queue_item (:class:`nyawc.QueueItem`): The queue item that's about to start.
+            queue_item: The queue item that's about to start.
 
         Note:
             This method gets called in the crawling thread and is therefore not thread safe.
@@ -244,11 +246,11 @@ class Driver:
             print(traceback.format_exc())
 
     @staticmethod
-    def __request_to_string(request):
+    def __request_to_string(request: Request):
         """Convert the given requests to a string representation.
 
         Args:
-            request (:class:`nyawc.http.Request`): The request to convert.
+            request: The request to convert.
 
         Returns:
             str: The string representation

@@ -6,10 +6,13 @@ import sys
 
 import requests
 import requests.cookies
+from nyawc import QueueItem
 from nyawc.helpers.HTTPRequestHelper import HTTPRequestHelper
 from nyawc.http.Request import Request
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+
+from constants import FILE_PATH
 
 try: # Python 3
     from urllib.parse import quote, urlparse
@@ -28,11 +31,11 @@ class BrowserHelper:
     _phantomjs_driver = None
 
     @staticmethod
-    def request(queue_item):
+    def request(queue_item: QueueItem):
         """Execute the given queue item and return the browser instance.
 
         Args:
-            queue_item (:class:`nyawc.QueueItem`): The queue item to execute the JavaScript on.
+            queue_item: The queue item to execute the JavaScript on.
 
         Returns:
             obj: The browser instance reference.
@@ -61,11 +64,11 @@ class BrowserHelper:
             return None
 
     @staticmethod
-    def javascript(queue_item, command):
+    def javascript(queue_item: QueueItem, command):
         """Execute a JavaScript command on the given queue item.
 
         Args:
-            queue_item (:class:`nyawc.QueueItem`): The queue item to execute the JavaScript on.
+            queue_item: The queue item to execute the JavaScript on.
             command (str): The JavaScript command.
 
         Returns:
@@ -84,18 +87,18 @@ class BrowserHelper:
         return response
 
     @staticmethod
-    def __get_browser(queue_item=None):
+    def __get_browser(queue_item: QueueItem = None):
         """Get the PhantomJS browser.
 
         Args:
-            queue_item (:class:`nyawc.QueueItem`): Use authentication/headers/cookies etc from this queue item (if given).
+            queue_item: Use authentication/headers/cookies etc from this queue item (if given).
 
         Returns:
             obj: The PhantomJS Selenium object.
 
         """
 
-        capabilities = dict(DesiredCapabilities.PHANTOMJS)
+        capabilities = dict(DesiredCapabilities.HTMLUNITWITHJS)
         service = []
 
         if queue_item:
@@ -125,7 +128,7 @@ class BrowserHelper:
                 service.extend(BrowserHelper.__proxies_to_service_args(queue_item.request.proxies))
 
         driver_path = BrowserHelper.__get_phantomjs_driver()
-        return webdriver.PhantomJS(
+        return webdriver.Chrome(
             executable_path=driver_path,
             desired_capabilities=capabilities,
             service_args=service
@@ -185,16 +188,16 @@ class BrowserHelper:
         if BrowserHelper._phantomjs_driver:
             return BrowserHelper._phantomjs_driver
 
-        path = os.path.dirname(os.path.abspath(__file__))
+        path = FILE_PATH.joinpath('acstis', 'phantomjs')
         bits = ctypes.sizeof(ctypes.c_voidp)
         x = "32" if bits == 4 else "64"
 
         if sys.platform in ["linux", "linux2"]:
-            file = f"{path}/../phantomjs/linux{x}-2.1.1"
+            file = path.joinpath(f"linux{x}-2.1.1").as_posix()
         elif sys.platform == "darwin":
-            file = f"{path}/../phantomjs/mac-2.1.1"
+            file = path.joinpath("mac-2.1.1").as_posix()
         elif sys.platform == "win32":
-            file = f"{path}/../phantomjs/win-2.1.1.exe"
+            file = path.joinpath("win-2.1.1.exe").as_posix()
 
         st = os.stat(file)
         os.chmod(file, st.st_mode | stat.S_IEXEC)
