@@ -25,4 +25,4 @@ Checklist
 -  [ ] Documentation/wiki is updated according to the change(s).
 
 Google Python Style Guide: <https://google.github.io/styleguide/pyguide.html>.
-Contribution guidelines: <https://github.com/tijme/angularjs-csti-scanner/blob/master/CONTRIBUTING.rst>.
+Contribution guidelines: <https://github.com/cqr-cryeye-forks/angularjs-csti-scanner/blob/master/CONTRIBUTING.rst>.

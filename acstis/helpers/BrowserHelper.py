@@ -1,57 +1,31 @@
-# -*- coding: utf-8 -*-
-
-# MIT License
-#
-# Copyright (c) 2017 Tijme Gommers
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-
-import os
-import sys
-import json
-import stat
 import ctypes
-import colorlog
+import json
+import os
+import stat
+import sys
+
 import requests
 import requests.cookies
-
+from nyawc.helpers.HTTPRequestHelper import HTTPRequestHelper
+from nyawc.http.Request import Request
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-from nyawc.helpers.HTTPRequestHelper import HTTPRequestHelper
-from nyawc.helpers.URLHelper import URLHelper
-from nyawc.http.Request import Request
 
 try: # Python 3
     from urllib.parse import quote, urlparse
-except: # Python 2
+except:  # Python 2
     from urllib import quote
     from urlparse import urlparse
+
 
 class BrowserHelper:
     """The BrowserHelper enables headless web browsing.
 
-    Attributes:
-        __phantomjs_driver (str): The cached path to the executable PhantomJS driver.
+    _phantomjs_driver (str): The cached path to the executable PhantomJS driver.
 
     """
 
-    __phantomjs_driver = None
+    _phantomjs_driver = None
 
     @staticmethod
     def request(queue_item):
@@ -70,13 +44,20 @@ class BrowserHelper:
 
             if queue_item.request.method == Request.METHOD_POST:
                 browser.get('about:blank')
-                browser.execute_script('window.doRequest=function(a,b,c){c=c||"post";var d=document.createElement("form");d.setAttribute("method",c),d.setAttribute("action",a),b=decodeURIComponent(b),b=JSON.parse(b);for(var e in b)if(b.hasOwnProperty(e)){var f=document.createElement("input");f.setAttribute("type","hidden"),f.setAttribute("name",e),f.setAttribute("value",b[e]),d.appendChild(f)}document.body.appendChild(d),d.submit()}')
-                browser.execute_script('window.doRequest("{}", `{}`, "{}");'.format(queue_item.request.url, quote(json.dumps(queue_item.request.data)), queue_item.request.method));
+                browser.execute_script(
+                    'window.doRequest=function(a,b,c){c=c||"post";var d=document.createElement("form");d.'
+                    'setAttribute("method",c),d.setAttribute("action",a),b=decodeURIComponent(b),b=JSON.parse(b);'
+                    'for(var e in b)if(b.hasOwnProperty(e)){var f=document.createElement("input");f.setAttribute('
+                    '"type","hidden"),f.setAttribute("name",e),f.setAttribute("value",b[e]),d.appendChild(f)}documen'
+                    't.body.appendChild(d),d.submit()}')
+                browser.execute_script('window.doRequest("{}", `{}`, "{}");'.format(queue_item.request.url, quote(
+                    json.dumps(queue_item.request.data)), queue_item.request.method))
             else:
                 browser.get(queue_item.request.url)
 
             return browser
         except Exception as e:
+            print(e)
             return None
 
     @staticmethod
@@ -97,6 +78,7 @@ class BrowserHelper:
             response = browser.execute_script(command)
             browser.quit()
         except Exception as e:
+            print(e)
             response = None
 
         return response
@@ -133,14 +115,10 @@ class BrowserHelper:
                 for (key, value) in queue_item.request.headers.items():
                     if key.lower() == "user-agent":
                         capabilities["phantomjs.page.settings.userAgent"] = value
-                    else:
-                        
-                        # PhantomJS has issues with executing JavaScript on pages with GZIP encoding.
-                        # See link for more information (https://github.com/detro/ghostdriver/issues/489).
-                        if key == "Accept-Encoding" and "gzip" in value:
-                            continue
-
-                        capabilities["phantomjs.page.customHeaders." + key] = value
+                    # PhantomJS has issues with executing JavaScript on pages with GZIP encoding.
+                    # See link for more information (https://github.com/detro/ghostdriver/issues/489).
+                    elif key != "Accept-Encoding" or "gzip" not in value:
+                        capabilities[f"phantomjs.page.customHeaders.{key}"] = value
 
             # Proxies
             if queue_item.request.proxies:
@@ -179,16 +157,16 @@ class BrowserHelper:
         if parsed.scheme.startswith("http"):
             service_args.append("--proxy-type=http")
         else:
-            service_args.append("--proxy-type=" + parsed.scheme)
+            service_args.append(f"--proxy-type={parsed.scheme}")
 
         # Proxy
         host_and_port = parsed.netloc.split("@")[-1]
-        service_args.append("--proxy=" + host_and_port)
+        service_args.append(f"--proxy={host_and_port}")
 
         # Proxy auth
         if len(parsed.netloc.split("@")) == 2:
             user_pass = parsed.netloc.split("@")[0]
-            service_args.append("--proxy-auth=" + user_pass)
+            service_args.append(f"--proxy-auth={user_pass}")
 
         # Ignore SSL (please see note in this method).
         service_args.append("--ignore-ssl-errors=true")
@@ -204,22 +182,22 @@ class BrowserHelper:
 
         """
 
-        if BrowserHelper.__phantomjs_driver:
-            return BrowserHelper.__phantomjs_driver
+        if BrowserHelper._phantomjs_driver:
+            return BrowserHelper._phantomjs_driver
 
         path = os.path.dirname(os.path.abspath(__file__))
         bits = ctypes.sizeof(ctypes.c_voidp)
         x = "32" if bits == 4 else "64"
 
-        if sys.platform == "linux" or sys.platform == "linux2":
-            file = path + "/../phantomjs/linux" + x + "-2.1.1"
+        if sys.platform in ["linux", "linux2"]:
+            file = f"{path}/../phantomjs/linux{x}-2.1.1"
         elif sys.platform == "darwin":
-            file =  path + "/../phantomjs/mac-2.1.1"
+            file = f"{path}/../phantomjs/mac-2.1.1"
         elif sys.platform == "win32":
-            file =  path + "/../phantomjs/win-2.1.1.exe"
+            file = f"{path}/../phantomjs/win-2.1.1.exe"
 
         st = os.stat(file)
         os.chmod(file, st.st_mode | stat.S_IEXEC)
 
-        BrowserHelper.__phantomjs_driver = file
-        return BrowserHelper.__phantomjs_driver
+        BrowserHelper._phantomjs_driver = file
+        return BrowserHelper._phantomjs_driver

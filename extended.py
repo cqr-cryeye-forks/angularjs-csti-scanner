@@ -1,34 +1,12 @@
-# -*- coding: utf-8 -*-
-
-# MIT License
-#
-# Copyright (c) 2017 Tijme Gommers
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-
 import argparse
-import colorlog
 import logging
 
+import colorlog
 from nyawc.Options import Options
+
 from acstis.Driver import Driver
 from acstis.helpers.PackageHelper import PackageHelper
+
 
 def main():
     """Start the scanner."""
@@ -56,10 +34,9 @@ def main():
     """                                                            """
     """ ########################################################## """
 
-
-
     driver = Driver(args, options)
     driver.start()
+
 
 def require_arguments():
     """Get the arguments from CLI input.
@@ -80,21 +57,43 @@ def require_arguments():
     required.add_argument("-d", "--domain", help="the domain to scan (e.g. finnwea.com)", required=True)
 
     optional.add_argument("-c", "--crawl", help="use the crawler to scan all the entire domain", action="store_true")
-    optional.add_argument("-vp", "--verify-payload", help="use a javascript engine to verify if the payload was executed (otherwise false positives may occur)", action="store_true")
-    optional.add_argument("-av", "--angular-version", help="manually pass the angular version (e.g. 1.4.2) if the automatic check doesn't work", type=str, default=None)
-    optional.add_argument("-vrl", "--vulnerable-requests-log", help="log all vulnerable requests to this file (e.g. /var/logs/acstis.log or urls.log)", type=str, default=None)
-    optional.add_argument("-siv", "--stop-if-vulnerable", help="(crawler option) stop scanning if a vulnerability was found", action="store_true")
-    optional.add_argument("-pmm", "--protocol-must-match", help="(crawler option) only scan pages with the same protocol as the startpoint (e.g. only https)", action="store_true")
-    optional.add_argument("-sos", "--scan-other-subdomains", help="(crawler option) also scan pages that have another subdomain than the startpoint", action="store_true")
-    optional.add_argument("-soh", "--scan-other-hostnames", help="(crawler option) also scan pages that have another hostname than the startpoint", action="store_true")
-    optional.add_argument("-sot", "--scan-other-tlds", help="(crawler option) also scan pages that have another tld than the startpoint", action="store_true")
-    optional.add_argument("-md", "--max-depth", help="(crawler option) the maximum search depth (default is unlimited)", type=int)
-    optional.add_argument("-mt", "--max-threads", help="(crawler option) the maximum amount of simultaneous threads to use (default is 20)", type=int, default=20)
-    optional.add_argument("-iic", "--ignore-invalid-certificates", help="(crawler option) ignore invalid ssl certificates", action="store_true")
-    optional.add_argument("-tc", "--trusted-certificates", help="(crawler option) trust this CA_BUNDLE file (.pem) or directory with certificates", type=str, default=None)
+    optional.add_argument("-vp", "--verify-payload",
+                          help="use a javascript engine to verify if the payload was executed (otherwise false positives may occur)",
+                          action="store_true")
+    optional.add_argument("-av", "--angular-version",
+                          help="manually pass the angular version (e.g. 1.4.2) if the automatic check doesn't work",
+                          type=str, default=None)
+    optional.add_argument("-vrl", "--vulnerable-requests-log",
+                          help="log all vulnerable requests to this file (e.g. /var/logs/acstis.log or urls.log)",
+                          type=str, default=None)
+    optional.add_argument("-siv", "--stop-if-vulnerable",
+                          help="(crawler option) stop scanning if a vulnerability was found", action="store_true")
+    optional.add_argument("-pmm", "--protocol-must-match",
+                          help="(crawler option) only scan pages with the same protocol as the startpoint (e.g. only https)",
+                          action="store_true")
+    optional.add_argument("-sos", "--scan-other-subdomains",
+                          help="(crawler option) also scan pages that have another subdomain than the startpoint",
+                          action="store_true")
+    optional.add_argument("-soh", "--scan-other-hostnames",
+                          help="(crawler option) also scan pages that have another hostname than the startpoint",
+                          action="store_true")
+    optional.add_argument("-sot", "--scan-other-tlds",
+                          help="(crawler option) also scan pages that have another tld than the startpoint",
+                          action="store_true")
+    optional.add_argument("-md", "--max-depth", help="(crawler option) the maximum search depth (default is unlimited)",
+                          type=int)
+    optional.add_argument("-mt", "--max-threads",
+                          help="(crawler option) the maximum amount of simultaneous threads to use (default is 20)",
+                          type=int, default=20)
+    optional.add_argument("-iic", "--ignore-invalid-certificates",
+                          help="(crawler option) ignore invalid ssl certificates", action="store_true")
+    optional.add_argument("-tc", "--trusted-certificates",
+                          help="(crawler option) trust this CA_BUNDLE file (.pem) or directory with certificates",
+                          type=str, default=None)
 
     parser._action_groups.append(optional)
     return parser.parse_args()
+
 
 def setup_logger():
     """Setup ColorLog to enable colored logging output."""
@@ -136,6 +135,7 @@ def setup_logger():
         lambda message, *args: logger._log(logging.SUCCESS, message, args)
     )
 
+
 def print_banner():
     """Print a useless ASCII art banner to make things look a bit nicer."""
 
@@ -151,6 +151,7 @@ def print_banner():
 
 Version """ + PackageHelper.get_version() + """ - Copyright 2017 Tijme Gommers <tijme@finnwea.com>
     """)
+
 
 if __name__ == "__main__":
     main()

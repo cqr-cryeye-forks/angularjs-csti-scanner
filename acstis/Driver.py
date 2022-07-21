@@ -1,43 +1,19 @@
-# -*- coding: utf-8 -*-
-
-# MIT License
-#
-# Copyright (c) 2017 Tijme Gommers
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-
-import sys
 import signal
-import colorlog
+import sys
 import traceback
 
-from requests_toolbelt import user_agent
-from nyawc.QueueItem import QueueItem
+import colorlog
 from nyawc.Crawler import Crawler
 from nyawc.CrawlerActions import CrawlerActions
+from nyawc.QueueItem import QueueItem
+from nyawc.helpers.HTTPRequestHelper import HTTPRequestHelper
 from nyawc.http.Request import Request
 from nyawc.http.Response import Response
-from nyawc.helpers.HTTPRequestHelper import HTTPRequestHelper
-from acstis.helpers.BrowserHelper import BrowserHelper
-from acstis.helpers.PackageHelper import PackageHelper
-from acstis.helpers.FileLoggingHelper import FileLoggingHelper
+
 from acstis.Scanner import Scanner
+from acstis.helpers.BrowserHelper import BrowserHelper
+from acstis.helpers.FileLoggingHelper import FileLoggingHelper
+
 
 class Driver:
     """The main Crawler class which handles the crawling recursion, queue and processes.
@@ -92,7 +68,9 @@ class Driver:
 
         self.stopping = True
 
-        colorlog.getLogger().warning("Received SIGINT, stopping the crawling threads safely. This could take up to 30 seconds (the thread timeout).")
+        colorlog.getLogger().warning(
+            f"Received SIGINT{signum} on frame {frame}, stopping the crawling threads safely. "
+            "This could take up to 30 seconds (the thread timeout).")
 
     def __set_angular_version(self, startpoint):
         """Find and set the AngularJS version as class attribute
@@ -107,7 +85,8 @@ class Driver:
 
         if self.__args.angular_version:
             self.__angular_version = self.__args.angular_version
-            colorlog.getLogger().info("Found AngularJS version " + self.__angular_version + " in the arguments.")
+            colorlog.getLogger().info(f"Found AngularJS version {self.__angular_version} in the arguments.")
+
             return True
 
         colorlog.getLogger().info("Looking for AngularJS version using a headless browser.")
@@ -119,11 +98,13 @@ class Driver:
         )
 
         if self.__angular_version:
-            colorlog.getLogger().info("Found AngularJS version " + self.__angular_version + ".")
+            colorlog.getLogger().info(f"Found AngularJS version {self.__angular_version}.")
             return True
 
-        colorlog.getLogger().error("Couldn't determine the AngularJS version (`angular.version.full` threw an exception).")
-        colorlog.getLogger().error("If you are certain this URL uses AngularJS, specify the version via the `--angular-version` argument.")
+        colorlog.getLogger().error(
+            "Couldn't determine the AngularJS version (`angular.version.full` threw an exception).")
+        colorlog.getLogger().error(
+            "If you are certain this URL uses AngularJS, specify the version via the `--angular-version` argument.")
         return False
 
     def start(self):
@@ -141,7 +122,8 @@ class Driver:
         # Exit the process with the correct status code
         sys.exit(not self.__vulnerable_items)
 
-    def cb_crawler_before_start(self):
+    @staticmethod
+    def cb_crawler_before_start():
         """Called before the crawler starts crawling."""
 
         colorlog.getLogger().info("Angular CSTI scanner started.")
@@ -160,7 +142,8 @@ class Driver:
             colorlog.getLogger().info("Angular CSTI scanner finished.")
 
         if self.__vulnerable_items:
-            colorlog.getLogger().success("Found " + str(len(self.__vulnerable_items)) + " vulnerable request(s).")
+            colorlog.getLogger().success(f"Found {len(self.__vulnerable_items)} vulnerable request(s).")
+
             colorlog.getLogger().success("Listing vulnerable request(s).")
 
             for vulnerable_item in self.__vulnerable_items:
@@ -183,7 +166,7 @@ class Driver:
 
         """
 
-        colorlog.getLogger().info("Scanning " + queue_item.request.url)
+        colorlog.getLogger().info(f"Scanning {queue_item.request.url}")
 
         if self.__vulnerable_items and self.__args.stop_if_vulnerable:
             self.stopping = True
@@ -194,13 +177,13 @@ class Driver:
 
         return CrawlerActions.DO_CONTINUE_CRAWLING
 
-    def cb_request_after_finish(self, queue, queue_item, new_queue_items):
+    def cb_request_after_finish(self, queue, queue_item, new_queue_items: list[QueueItem]):
         """Crawler callback (called after a request finished).
 
         Args:
             queue (:class:`nyawc.Queue`): The current crawling queue.
             queue_item (:class:`nyawc.QueueItem`): The queue item that was finished.
-            new_queue_items list(:class:`nyawc.QueueItem`): The new queue items that were found in the one that finished.
+            new_queue_items list(:class:`nyawc.QueueItem`): The new queue items that were found
 
         Returns:
             str: A crawler action (either DO_STOP_CRAWLING or DO_CONTINUE_CRAWLING).
@@ -225,7 +208,8 @@ class Driver:
 
         return CrawlerActions.DO_CONTINUE_CRAWLING
 
-    def cb_request_on_error(self, queue_item, message):
+    @staticmethod
+    def cb_request_on_error(queue_item, message):
         """Crawler callback (called when a request error occurs).
 
         Args:
@@ -234,7 +218,7 @@ class Driver:
 
         """
 
-        colorlog.getLogger().error(message)
+        colorlog.getLogger().error(f"{queue_item}: {message}")
 
     def cb_request_in_thread_after_finish(self, queue_item):
         """Crawler callback (called after a request finished).
@@ -253,12 +237,14 @@ class Driver:
             return
 
         try:
-            queue_item.vulnerable_items = Scanner(self, self.__angular_version, self.__args.verify_payload, queue_item).get_vulnerable_items()
+            queue_item.vulnerable_items = Scanner(self, self.__angular_version, self.__args.verify_payload,
+                                                  queue_item).get_vulnerable_items()
         except Exception as e:
             print(e)
             print(traceback.format_exc())
 
-    def __request_to_string(self, request):
+    @staticmethod
+    def __request_to_string(request):
         """Convert the given requests to a string representation.
 
         Args:
@@ -272,13 +258,11 @@ class Driver:
         data = ""
 
         if request.data:
-            key_values = []
-            for (key, value) in request.data.items():
-                key_values.append(key + "=" + value)
-
+            key_values = [f"{key}={value}" for key, value in request.data.items()]
             data += "&".join(key_values)
 
-        return request.method.upper() + "(" + data + "): " + request.url
+        return f"{request.method.upper()}({data}): {request.url}"
+
 
 class Namespace:
     """An ArgumentParser namespace mockup for if the driver is called manually (using code instead of CLI)."""
@@ -299,7 +283,4 @@ class Namespace:
 
         """
 
-        if name in self.__dict__:
-            return object.__getattribute__(self, name)
-        else:
-            return None
+        return object.__getattribute__(self, name) if name in self.__dict__ else None

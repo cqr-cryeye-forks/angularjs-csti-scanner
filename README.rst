@@ -20,7 +20,7 @@
    :alt: Build Status
    
 .. image:: https://raw.finnwea.com/shield/?firstText=License&secondText=MIT
-   :target: https://github.com/tijme/angularjs-csti-scanner/blob/master/LICENSE.rst
+   :target: https://github.com/cqr-cryeye-forks/angularjs-csti-scanner/blob/master/LICENSE.rst
    :alt: License: MIT
 
 .. raw:: html
@@ -43,7 +43,7 @@ Installation
 
 First make sure you're on `Python 2.7/3.4 <https://www.python.org/>`__ or higher. Then run the command below to install ACSTIS.
 
-``$ pip install https://github.com/tijme/angularjs-csti-scanner/archive/master.zip``
+``$ pip install https://github.com/cqr-cryeye-forks/angularjs-csti-scanner/archive/master.zip``
 
 Usage
 -----
@@ -95,7 +95,7 @@ Usage
 
 **Authentication, Cookies, Headers, Proxies & Scope options**
 
-These options are not implemented in the command line interface of ACSTIS. Please download the `extended.py <https://github.com/tijme/angularjs-csti-scanner/blob/master/extended.py>`_ script and extend it with one or more of the following code snippets. You can paste these code snippets in the `main()` method of the `extended.py` script.
+These options are not implemented in the command line interface of ACSTIS. Please download the `extended.py <https://github.com/cqr-cryeye-forks/angularjs-csti-scanner/blob/master/extended.py>`_ script and extend it with one or more of the following code snippets. You can paste these code snippets in the `main()` method of the `extended.py` script.
 
 **Please note:** if you use the ``extended.py`` file make sure you call ``python extended.py [your arguments]`` instead of ``acstis [your arguments]``.
 
@@ -182,4 +182,4 @@ Issues or new features can be reported via the GitHub issue tracker. Please make
 License
 -------
 
-ACSTIS is open-sourced software licensed under the `MIT license <https://github.com/tijme/angularjs-csti-scanner/blob/master/LICENSE.rst>`__.
+ACSTIS is open-sourced software licensed under the `MIT license <https://github.com/cqr-cryeye-forks/angularjs-csti-scanner/blob/master/LICENSE.rst>`__.

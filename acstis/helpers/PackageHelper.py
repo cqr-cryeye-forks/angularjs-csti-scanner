@@ -1,49 +1,26 @@
-# -*- coding: utf-8 -*-
-
-# MIT License
-#
-# Copyright (c) 2017 Tijme Gommers
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-
 import os
 import re
+
 import pkg_resources
+
 
 class PackageHelper:
     """The Package class contains all the package related information (like the version number).
 
-    Attributes:
-        __name (str): Cached package name.
-        __description (str): Cached package description.
-        __alias (str): Cached package alias.
-        __version (str): Cached package version number (if initialized).
+    _name (str): Cached package name.
+    _description (str): Cached package description.
+    _alias (str): Cached package alias.
+    _version (str): Cached package version number (if initialized).
 
     """
 
-    __name = "ACSTIS"
+    _name = "ACSTIS"
 
-    __description = "Automated client-side template injection (sandbox escape/bypass) detection for AngularJS."
+    _description = "Automated client-side template injection (sandbox escape/bypass) detection for AngularJS."
 
-    __alias = "acstis"
+    _alias = "acstis"
 
-    __version = None
+    _version = None
 
     @staticmethod
     def get_name():
@@ -54,7 +31,7 @@ class PackageHelper:
 
         """
 
-        return PackageHelper.__name
+        return PackageHelper._name
 
     @staticmethod
     def get_description():
@@ -65,7 +42,7 @@ class PackageHelper:
 
         """
 
-        return PackageHelper.__description
+        return PackageHelper._description
 
     @staticmethod
     def get_alias():
@@ -76,7 +53,7 @@ class PackageHelper:
 
         """
 
-        return PackageHelper.__alias
+        return PackageHelper._alias
 
     @staticmethod
     def get_version():
@@ -95,37 +72,38 @@ class PackageHelper:
 
         """
 
-        if PackageHelper.__version:
-            return PackageHelper.__version
+        if PackageHelper._version:
+            return PackageHelper._version
 
-        PackageHelper.__version = "Unknown"
+        PackageHelper._version = "Unknown"
 
         # If this is a GIT clone without install, use the ``.semver`` file.
         file = os.path.realpath(__file__)
         folder = os.path.dirname(file)
 
         try:
-            semver = open(folder + "/../../.semver", "r")
-            PackageHelper.__version = semver.read().rstrip()
-            semver.close()
-            return PackageHelper.__version
-        except:
-            pass
+            with open(f"{folder}/../../.semver", "r") as semver:
+                PackageHelper._version = semver.read().rstrip()
+            return PackageHelper._version
+        except Exception as e:
+            print(e)
 
         # If the package was installed, get the version number via Python's distribution details.
         try:
             distribution = pkg_resources.get_distribution(PackageHelper.get_alias())
             if distribution.version:
-                PackageHelper.__version = distribution.version
-            return PackageHelper.__version
-        except:
-            pass
+                PackageHelper._version = distribution.version
+            return PackageHelper._version
+        except Exception as e:
+            print(e)
 
-        return PackageHelper.__version
+        return PackageHelper._version
 
     @staticmethod
     def rst_to_pypi(contents):
-        """Convert the given GitHub RST contents to PyPi RST contents (since some RST directives are not available in PyPi).
+        """
+        Convert the given GitHub RST contents to PyPi RST contents
+        (since some RST directives are not available in PyPi).
 
         Args:
             contents (str): The GitHub compatible RST contents.
@@ -141,11 +119,11 @@ class PackageHelper:
         # Convert ``<br class="title">`` to a H1 title
         asterisks_length = len(PackageHelper.get_name())
         asterisks = "*" * asterisks_length
-        title = asterisks + "\n" + PackageHelper.get_name() + "\n" + asterisks;
+        title = asterisks + "\n" + PackageHelper.get_name() + "\n" + asterisks
 
-        contents = re.sub(r"(\.\. raw\:\: html\n)(\n {2,4})(\<br class=\"title\"\>)", title, contents)
+        contents = re.sub(r"(\.\. raw:: html\n)(\n {2,4})(<br class=\"title\">)", title, contents)
 
         # The PyPi description does not support raw HTML
-        contents = re.sub(r"(\.\. raw\:\: html\n)((\n {2,4})([A-Za-z0-9<>\ =\"\/])*)*", "", contents)
+        contents = re.sub(r"(\.\. raw:: html\n)((\n {2,4})([A-Za-z\d<> =\"/])*)*", "", contents)
 
         return contents
