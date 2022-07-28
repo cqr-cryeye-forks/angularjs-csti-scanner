@@ -3,7 +3,6 @@ from nyawc.QueueItem import QueueItem
 from nyawc.http.Handler import Handler as HTTPHandler
 from requests import adapters
 
-from acstis.Driver import Driver
 from acstis.Payloads import Payloads
 from acstis.actions.FormDataAction import FormDataAction
 from acstis.actions.QueryDataAction import QueryDataAction
@@ -17,7 +16,7 @@ class Scanner:
     Attributes:
         scanned_hashes list(str): A list of scanned queue item hashes.
         __actions list(:class:`acstis.actions.BaseAction`): The actions to perform on the queue item.
-        __driver (:class:`acstis.Driver`): Used to check if we should stop scanning.
+        __driver: Used to check if we should stop scanning.
         __verify_payload (bool): Verify if the payload was executed.
         __queue_item (:class:`nyawc.QueueItem`): The queue item to perform actions on.
         __session (obj): A Python requests session.
@@ -26,11 +25,11 @@ class Scanner:
 
     scanned_hashes = []
 
-    def __init__(self, driver: Driver, angular_version: str, verify_payload: bool, queue_item: QueueItem):
+    def __init__(self, driver, angular_version: str, verify_payload: bool, queue_item: QueueItem):
         """Initialize a scanner for the given queue item.
 
         Args:
-            driver: Used to check if we should stop scanning.
+            driver: (:class: Driver) Used to check if we should stop scanning.
             angular_version (str): The AngularJS version of the given queue_item (e.g. `1.4.2`).
             verify_payload (bool): Verify if the payload was executed.
             queue_item: The queue item to scan.
