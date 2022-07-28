@@ -2,10 +2,7 @@ import re
 import socket
 import threading
 
-try:  # Python 3
-    from urllib.parse import unquote
-except ImportError:  # Python 2
-    from urllib import unquote
+from urllib.parse import unquote
 
 
 class LocalAngularServer:

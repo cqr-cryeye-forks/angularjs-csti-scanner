@@ -59,5 +59,5 @@ setup(
     install_requires=[
         requirements,
         'nyawc @ git+https://github.com/cqr-cryeye-forks/not-your-average-web-crawler'
-]
+    ]
 )

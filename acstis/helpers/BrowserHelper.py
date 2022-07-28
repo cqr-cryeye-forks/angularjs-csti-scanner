@@ -4,20 +4,14 @@ import os
 import pathlib
 import stat
 import sys
+from urllib.parse import quote, urlparse
 
-import requests
-import requests.cookies
 from nyawc import QueueItem
 from nyawc.helpers.HTTPRequestHelper import HTTPRequestHelper
 from nyawc.http.Request import Request
+from requests import utils
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-
-try:  # Python 3
-    from urllib.parse import quote, urlparse
-except:  # Python 2
-    from urllib import quote
-    from urlparse import urlparse
 
 FILE_PATH = pathlib.Path(__file__).parents[2]
 
@@ -114,15 +108,14 @@ class BrowserHelper:
                 queue_item.request.headers["Cookie"] = cookie_string
 
             # Add headers to PhantomJS
-            if queue_item.request.headers:
-                default_headers = requests.utils.default_headers()
-                for (key, value) in queue_item.request.headers.items():
-                    if key.lower() == "user-agent":
-                        capabilities["phantomjs.page.settings.userAgent"] = value
-                    # PhantomJS has issues with executing JavaScript on pages with GZIP encoding.
-                    # See link for more information (https://github.com/detro/ghostdriver/issues/489).
-                    elif key != "Accept-Encoding" or "gzip" not in value:
-                        capabilities[f"phantomjs.page.customHeaders.{key}"] = value
+            headers = queue_item.request.headers or utils.default_headers()
+            for (key, value) in headers.items():
+                if key.lower() == "user-agent":
+                    capabilities["phantomjs.page.settings.userAgent"] = value
+                # PhantomJS has issues with executing JavaScript on pages with GZIP encoding.
+                # See link for more information (https://github.com/detro/ghostdriver/issues/489).
+                elif key != "Accept-Encoding" or "gzip" not in value:
+                    capabilities[f"phantomjs.page.customHeaders.{key}"] = value
 
             # Proxies
             if queue_item.request.proxies:
@@ -190,7 +183,7 @@ class BrowserHelper:
             return BrowserHelper._phantomjs_driver
 
         path = FILE_PATH.joinpath('acstis', 'phantomjs')
-        bits = ctypes.sizeof(ctypes.c_voidp)
+        bits = ctypes.sizeof(ctypes.c_void_p)
         x = "32" if bits == 4 else "64"
 
         if sys.platform in ["linux", "linux2"]:
@@ -199,6 +192,8 @@ class BrowserHelper:
             file = path.joinpath("mac-2.1.1").as_posix()
         elif sys.platform == "win32":
             file = path.joinpath("win-2.1.1.exe").as_posix()
+        else:
+            raise ImportError(f'{sys.platform} is unsupported')
 
         st = os.stat(file)
         os.chmod(file, st.st_mode | stat.S_IEXEC)

@@ -1,7 +1,9 @@
 import requests
+from nyawc.QueueItem import QueueItem
 from nyawc.http.Handler import Handler as HTTPHandler
 from requests import adapters
 
+from acstis.Driver import Driver
 from acstis.Payloads import Payloads
 from acstis.actions.FormDataAction import FormDataAction
 from acstis.actions.QueryDataAction import QueryDataAction
@@ -24,14 +26,14 @@ class Scanner:
 
     scanned_hashes = []
 
-    def __init__(self, driver, angular_version, verify_payload, queue_item):
+    def __init__(self, driver: Driver, angular_version: str, verify_payload: bool, queue_item: QueueItem):
         """Initialize a scanner for the given queue item.
 
         Args:
-            driver (:class:`acstis.Driver`): Used to check if we should stop scanning.
+            driver: Used to check if we should stop scanning.
             angular_version (str): The AngularJS version of the given queue_item (e.g. `1.4.2`).
             verify_payload (bool): Verify if the payload was executed.
-            queue_item (:class:`nyawc.QueueItem`): The queue item to scan.
+            queue_item: The queue item to scan.
 
         """
 
@@ -49,11 +51,11 @@ class Scanner:
             QueryDataAction(Payloads.get_for_version(angular_version))
         ]
 
-    def get_vulnerable_items(self):
+    def get_vulnerable_items(self) -> list[QueueItem]:
         """Get a list of vulnerable queue items, if any.
 
         Returns:
-            list(:class:`nyawc.QueueItem`): A list of vulnerable queue items.
+            A list of vulnerable queue items.
 
         """
 
@@ -79,46 +81,38 @@ class Scanner:
 
         return results
 
-    def __is_item_vulnerable(self, queue_item):
+    def __is_item_vulnerable(self, queue_item: QueueItem) -> bool:
         """
         Check if the given queue item is vulnerable by executing it using the HttpHandler
         and checking if the payload is in scope.
 
         Args:
-            queue_item (:class:`nyawc.QueueItem`): The queue item to check.
+            queue_item: The queue item to check.
 
         Returns:
             bool: True if vulnerable, false otherwise.
 
         """
-
         try:
             HTTPHandler(None, queue_item)
         except Exception as e:
             print(e)
             return False
-
         if not queue_item.response.headers.get("content-type") \
                 or "html" not in queue_item.response.headers.get("content-type"):
             return False
-
         if not queue_item.get_soup_response():
             return False
-
-        if not self.__should_payload_execute(queue_item):
-            return False
-
-        if self.__verify_payload and not self.__verify_queue_item(queue_item.verify_item):
-            return False
-
-        return True
+        return bool(not self.__verify_payload
+                    or self.__verify_queue_item(queue_item.verify_item)) if self.__should_payload_execute(queue_item) \
+            else False
 
     @staticmethod
-    def __should_payload_execute(queue_item):
+    def __should_payload_execute(queue_item: QueueItem):
         """Run static checks to see if the payload should be executed.
 
         Args:
-            queue_item (:class:`nyawc.QueueItem`): The queue item to check.
+            queue_item: The queue item to check.
 
         Returns:
             bool: True if payload should execute, false otherwise.
@@ -136,17 +130,14 @@ class Scanner:
 
         in_scope_html = str(ng_app_soup[0])
 
-        if queue_item.payload["value"] in in_scope_html:
-            return True
-
-        return False
+        return queue_item.payload["value"] in in_scope_html
 
     @staticmethod
-    def __verify_queue_item(queue_item):
+    def __verify_queue_item(queue_item: QueueItem) -> bool:
         """Verify if the browser opened a new window.
 
         Args:
-            queue_item (:class:`nyawc.QueueItem`): The queue item to check.
+            queue_item: The queue item to check.
 
         Returns:
             bool: True if the payload worked, false otherwise.

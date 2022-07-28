@@ -21,6 +21,7 @@ class TraverseUrlAction(BaseAction):
         BaseAction.__init__(self)
         self.__payloads = payloads
 
+    # noinspection PyProtectedMember
     def get_action_items_derived(self):
         """Get new queue items based on this action.
 

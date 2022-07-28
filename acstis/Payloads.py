@@ -1,9 +1,5 @@
 import copy
-
-try: # Python 3
-    from urllib.parse import quote_plus
-except:  # Python 2
-    from urllib import quote_plus
+from urllib.parse import quote_plus
 
 
 class Payloads:
@@ -197,16 +193,10 @@ class Payloads:
             bool: True if in range, False otherwise
 
         """
-
         req_major, req_minor, req_patch = version.split(".")
         min_major, min_minor, min_patch = minimum.split(".")
         max_major, max_minor, max_patch = maximum.split(".")
-
         required = int(req_major.zfill(2) + req_minor.zfill(2) + req_patch.zfill(2))
         minimum = int(min_major.zfill(2) + min_minor.zfill(2) + min_patch.zfill(2))
         maximum = int(max_major.zfill(2) + max_minor.zfill(2) + max_patch.zfill(2))
-
-        if minimum <= required <= maximum:
-            return True
-
-        return False
+        return minimum <= required <= maximum

@@ -1,13 +1,9 @@
 import copy
 
-try: # Python 3
-    from urllib.parse import urlparse, parse_qsl
-except:  # Python 2
-    from urlparse import urlparse, parse_qsl
-
-from acstis.actions.BaseAction import BaseAction
 from nyawc.helpers.URLHelper import URLHelper
+
 from acstis.Payloads import Payloads
+from acstis.actions.BaseAction import BaseAction
 
 
 class QueryDataAction(BaseAction):

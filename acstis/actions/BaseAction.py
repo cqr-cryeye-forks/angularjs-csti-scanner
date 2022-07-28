@@ -1,48 +1,52 @@
 import copy
+from urllib.parse import urlparse
 
 from nyawc.QueueItem import QueueItem
 from nyawc.http.Response import Response
-
-try: # Python 3
-    from urllib.parse import urljoin, urlparse, parse_qsl, urlencode, urlunparse
-except:  # Python 2
-    from urllib import urlencode
-    from urlparse import urljoin, urlparse, parse_qsl, urlunparse
 
 
 class BaseAction(object):
     """The BaseAction can be used to create other actions.
 
     Attributes:
-        __queue_item (:class:`nyawc.QueueItem`): The queue item containing the response to scrape.
+        __queue_item: The queue item containing the response to scrape.
 
     """
 
-    def get_action_items(self, queue_item):
+    def __init__(self, __queue_item: QueueItem = None):
+        self.__queue_item = __queue_item
+
+    def get_action_items_derived(self) -> list:
+        """
+        return processed data
+        """
+        return []
+
+    def get_action_items(self, queue_item: QueueItem) -> list[QueueItem]:
         """Get new queue items that could be vulnerable.
 
         Args:
-            queue_item (:class:`nyawc.QueueItem`): The queue item containing a response the scrape.
+            queue_item: The queue item containing a response the scrape.
 
         Returns:
-            list(:class:`nyawc.QueueItem`): A list of new queue items that were found.
+            A list of new queue items that were found.
 
         """
 
         self.__queue_item = queue_item
         return self.get_action_items_derived()
 
-    def get_item(self):
+    def get_item(self) -> QueueItem:
         """Get the original queue item.
 
         Returns:
-            :class:`nyawc.QueueItem`: The original queue item.
+         The original queue item.
 
         """
 
         return self.__queue_item
 
-    def get_item_copy(self):
+    def get_item_copy(self) -> QueueItem:
         """Copy the current queue item.
 
         Returns:
@@ -80,10 +84,5 @@ class BaseAction(object):
             str: The filename, or None if it does not exist.
 
         """
-
         filename = self.get_parsed_url().path.split("/")[-1]
-
-        if "." in filename:
-            return filename
-
-        return None
+        return filename if "." in filename else None

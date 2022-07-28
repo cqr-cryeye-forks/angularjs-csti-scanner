@@ -16,6 +16,7 @@ from acstis.helpers.BrowserHelper import BrowserHelper
 from acstis.helpers.FileLoggingHelper import FileLoggingHelper
 
 
+# noinspection PyUnresolvedReferences
 class Driver:
     """The main Crawler class which handles the crawling recursion, queue and processes.
 

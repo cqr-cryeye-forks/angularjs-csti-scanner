@@ -8,6 +8,7 @@ from acstis.Driver import Driver
 from acstis.helpers.PackageHelper import PackageHelper
 
 
+# noinspection DuplicatedCode
 def require_arguments():
     """Get the arguments from CLI input.
 
@@ -21,6 +22,7 @@ def require_arguments():
         formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=220, width=220)
     )
 
+    # noinspection PyProtectedMember
     optional = parser._action_groups.pop()
     required = parser.add_argument_group("required arguments")
 
@@ -63,10 +65,12 @@ def require_arguments():
                           help="(crawler option) trust this CA_BUNDLE file (.pem) or directory with certificates",
                           type=str, default=None)
 
+    # noinspection PyProtectedMember
     parser._action_groups.append(optional)
     return parser.parse_args()
 
 
+# noinspection DuplicatedCode,PyUnresolvedReferences,PyProtectedMember
 def setup_logger():
     """Setup ColorLog to enable colored logging output."""
 
@@ -111,20 +115,19 @@ def setup_logger():
 def print_banner():
     """Print a useless ASCII art banner to make things look a bit nicer."""
 
-    print("""
-  /$$$$$$   /$$$$$$   /$$$$$$  /$$$$$$$$ /$$$$$$  /$$$$$$
- /$$__  $$ /$$__  $$ /$$__  $$|__  $$__/|_  $$_/ /$$__  $$
-| $$  \ $$| $$  \__/| $$  \__/   | $$     | $$  | $$  \__/
-| $$$$$$$$| $$      |  $$$$$$    | $$     | $$  |  $$$$$$
-| $$__  $$| $$       \____  $$   | $$     | $$   \____  $$
-| $$  | $$| $$    $$ /$$  \ $$   | $$     | $$   /$$  \ $$
-| $$  | $$|  $$$$$$/|  $$$$$$/   | $$    /$$$$$$|  $$$$$$/
-|__/  |__/ \______/  \______/    |__/   |______/ \______/
-
-Version """ + PackageHelper.get_version() + """ - Copyright 2017 Tijme Gommers <tijme@finnwea.com>
-    """)
+    print("\n/$$$$$$   /$$$$$$   /$$$$$$  /$$$$$$$$ /$$$$$$  /$$$$$$"
+          "\n/$$__  $$ /$$__  $$ /$$__  $$|__  $$__/|_  $$_/ /$$__  $$"
+          "\n| $$  \ $$| $$  \__/| $$  \__/   | $$     | $$  | $$  \__/"
+          "\n| $$$$$$$$| $$      |  $$$$$$    | $$     | $$  |  $$$$$$"
+          "\n| $$__  $$| $$       \____  $$   | $$     | $$   \____  $$"
+          "\n| $$  | $$| $$    $$ /$$  \ $$   | $$     | $$   /$$  \ $$"
+          "\n| $$  | $$|  $$$$$$/|  $$$$$$/   | $$    /$$$$$$|  $$$$$$/"
+          "\n|__/  |__/ \______/  \______/    |__/   |______/ \______/"
+          "\n"
+          f"\nVersion '{PackageHelper.get_version()}' - Copyright 2017 Tijme Gommers <tijme@finnwea.com>\n")
 
 
+# noinspection DuplicatedCode
 def main():
     """Start the scanner."""
 
